@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'firebase' => [
+        'api_key' => env('AIzaSyAK1RmqlbfLH7vIZAGtPYbqoZua0kQwyNQ'),
+        'auth_domain' => env('misd-56691.firebaseapp.com'),
+        'database_url' => env('https://misd-56691-default-rtdb.firebaseio.com'),
+        'project_id' => env('misd-56691'),
+        'storage_bucket' => env('misd-56691.firebasestorage.app'),
+        'messaging_sender_id' => env('769022387351'),
+        'app_id' => env('1:769022387351:web:0904cce4b5cdd7ddca75d2'),
+        'measurement_id' => env('G-F0P2GGEKW7'),
+    ],
+
 ];
