@@ -5,10 +5,14 @@ use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SubmitTicket;
+
+
 
 // Register
 Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+
 
 // Show login page
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -22,8 +26,12 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 
 Route::get('/', function () {
-  return view('tickets');
+  return view('tickets'); // Updated to reference the correct view
 });
+
+// Route to handle form submission (POST request)
+Route::post('/', [SubmitTicket::class, 'submitTicket'])->name('submit.ticket');
+
 
 
 // Test Firebase connection
