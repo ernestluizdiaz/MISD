@@ -5,7 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ticket Submission</title>
-  <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+  @Vite('resources/css/app.css')
+  @vite('resources/js/app.js')
+
 </head>
 
 <body class="bg-gray-50 ">
@@ -13,7 +15,10 @@
   @include('nav')
 
   <!-- Ticket Submission Form -->
-  <form class="flex flex-col max-w-md w-full p-8 shadow-xl rounded-xl border-2 mt-8 mx-auto" id="ticketForm">
+  <form method="POST" action="{{route('submit.ticket') }}"
+    class="flex flex-col max-w-md w-full p-8 shadow-xl rounded-xl border-2 mt-8 mx-auto" id="ticketForm">
+    @csrf
+
     <div class="relative z-0 w-full mb-5 group">
       <input type="text" name="floating_first_name" id="floating_first_name"
         class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"

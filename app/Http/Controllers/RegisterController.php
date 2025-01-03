@@ -52,4 +52,5 @@ class RegisterController extends Controller
             return back()->withErrors(['error' => 'Failed to register. Please try again.']);
         }
     }
+
 }
