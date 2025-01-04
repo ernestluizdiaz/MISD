@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Kreait\Firebase\Database;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 class SubmitTicket extends Controller
 {
@@ -20,7 +21,7 @@ class SubmitTicket extends Controller
             'description' => 'required|string|max:500',
         ]);
 
-        // Prepare the data
+        // Prepare the ticket data
         $data = [
             'first_name' => $request->floating_first_name,
             'last_name' => $request->floating_last_name,
@@ -34,11 +35,67 @@ class SubmitTicket extends Controller
 
         try {
             // Get the Firebase database instance
-            $database = app('firebase')->createDatabase(); // Use createDatabase() instead of getDatabase()
-            $database->getReference('tickets')->push($data);
+            $database = app('firebase')->createDatabase();
+            $ticketReference = $database->getReference('tickets')->push($data);
 
-            return redirect()->back()->with('success', 'Ticket submitted successfully!');
+            // Log the ticket description for debugging
+            Log::info('Ticket Description:', ['description' => $request->description]);
+
+            // Call Gemini API using Guzzle
+            $client = new Client();
+            $response = $client->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . env('GEMINI_API_KEY'), [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $request->description],  // Use description from form
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+            // Get the raw response from the stream
+            $body = $response->getBody();
+            $rawResponse = $body->getContents();  // Extract the content from the stream
+
+            // Log the raw response for debugging
+            Log::info('Raw Gemini API Response:', ['response' => $rawResponse]);
+
+            // Decode the response body to get the structured data
+            $solution = json_decode($rawResponse, true);
+
+            // Log the decoded response for debugging
+            Log::info('Gemini API Response:', ['response' => $solution]);
+
+            // Check if the response contains generated content
+            if (isset($solution['candidates'][0]['content']['parts'][0]['text'])) {
+                $ai_solution = $solution['candidates'][0]['content']['parts'][0]['text'];
+            } else {
+                // If no content found, fallback message
+                $ai_solution = 'AI did not generate a solution.';
+            }
+
+
+            // Add AI solution to the ticket
+            $ticketReference->update([
+                'ai_solution' => $ai_solution,
+            ]);
+
+            // Return the success view with ticket details and AI solution
+            return view('ticketSubmitted', [
+                'ticket' => $data,
+                'ai_solution' => $ai_solution,
+            ]);
+
         } catch (\Exception $e) {
+            // Log the exception error
+            Log::error('Error submitting ticket: ' . $e->getMessage());
+
+            // Return error message to the user
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
