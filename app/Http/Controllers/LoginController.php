@@ -35,22 +35,26 @@ class LoginController extends Controller
         ]);
 
         try {
-            // Attempt to sign in with Firebase
+            // Check if the email exists in Firebase
+            $user = $this->auth->getUserByEmail($request->email);
+
+            // If email exists, attempt to sign in with Firebase
             $signInResult = $this->auth->signInWithEmailAndPassword($request->email, $request->password);
 
             // Get user data from Firebase
             $user = $signInResult->data();
 
-            // Create or update a user record in your Laravel database if necessary
-            // For example: FirebaseUser::updateOrCreate(...);
-
             // Return success response
             return response()->json(['success' => true]);
+
+        } catch (\Kreait\Firebase\Exception\Auth\UserNotFound $e) {
+            // Email does not exist in Firebase
+            return response()->json(['error' => 'Email does not exist.'], 400);
         } catch (FailedToVerifyToken $e) {
             // Handle incorrect password
-            return response()->json(['error' => 'Password is incorrect.'], 400);
+            return response()->json(['error' => 'An error occurred.'], 400);
         } catch (\Exception $e) {
-            // Only return password incorrect error message, ignoring other errors
+            // Handle any other exceptions
             return response()->json(['error' => 'Password is incorrect.'], 400);
         }
     }

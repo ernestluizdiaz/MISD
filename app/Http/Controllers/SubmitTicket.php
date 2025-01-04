@@ -38,6 +38,9 @@ class SubmitTicket extends Controller
             $database = app('firebase')->createDatabase();
             $ticketReference = $database->getReference('tickets')->push($data);
 
+            // Get the ticket number (using Firebase key as ticket number)
+            $ticketNumber = $ticketReference->getKey();
+
             // Log the ticket description for debugging
             Log::info('Ticket Description:', ['description' => $request->description]);
 
@@ -51,7 +54,7 @@ class SubmitTicket extends Controller
                     'contents' => [
                         [
                             'parts' => [
-                                ['text' => $request->description],  // Use description from form
+                                ['text' => 'If you are unable to provide a solution for the user\'s concern, respond by stating that no solution is available, but reassure them that their ticket has been successfully submitted: ' . $request->description],
                             ],
                         ],
                     ],
@@ -73,22 +76,17 @@ class SubmitTicket extends Controller
 
             // Check if the response contains generated content
             if (isset($solution['candidates'][0]['content']['parts'][0]['text'])) {
-                $ai_solution = $solution['candidates'][0]['content']['parts'][0]['text'];
+                $aiSolution = $solution['candidates'][0]['content']['parts'][0]['text'];
             } else {
                 // If no content found, fallback message
-                $ai_solution = 'AI did not generate a solution.';
+                $aiSolution = 'AI did not generate a solution.';
             }
 
-
-            // Add AI solution to the ticket
-            $ticketReference->update([
-                'ai_solution' => $ai_solution,
-            ]);
-
-            // Return the success view with ticket details and AI solution
+            // Return the view with ticket number, ticket data, and AI solution
             return view('ticketSubmitted', [
-                'ticket' => $data,
-                'ai_solution' => $ai_solution,
+                'ticketNumber' => $ticketNumber,
+                'data' => $data,
+                'aiSolution' => $aiSolution,
             ]);
 
         } catch (\Exception $e) {
@@ -99,4 +97,5 @@ class SubmitTicket extends Controller
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
+
 }
