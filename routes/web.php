@@ -33,6 +33,5 @@ Route::get('/', function () {
 Route::post('/', [SubmitTicket::class, 'submitTicket'])->name('submit.ticket');
 
 
-
 // Test Firebase connection
 Route::get('/test-firebase', [FirebaseController::class, 'testConnection']);
