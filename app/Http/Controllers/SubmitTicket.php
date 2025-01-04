@@ -41,32 +41,44 @@ class SubmitTicket extends Controller
             // Log the ticket description for debugging
             Log::info('Ticket Description:', ['description' => $request->description]);
 
-            // Call Hugging Face API using Guzzle
+            // Call Gemini API using Guzzle
             $client = new Client();
-            $response = $client->post('https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct', [
+            $response = $client->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . env('GEMINI_API_KEY'), [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . env('HUGGINGFACE_API_KEY'),
+                    'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'inputs' => $request->description,
-                    'parameters' => [
-                        'max_tokens' => 500,
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $request->description],  // Use description from form
+                            ],
+                        ],
                     ],
-                ]
+                ],
             ]);
 
-            // Get the API response
+            // Get the raw response from the stream
             $body = $response->getBody();
-            $solution = json_decode($body, true);
+            $rawResponse = $body->getContents();  // Extract the content from the stream
 
+            // Log the raw response for debugging
+            Log::info('Raw Gemini API Response:', ['response' => $rawResponse]);
 
-            // Check if the response contains generated text
-            if (isset($solution[0]['generated_text'])) {
-                $ai_solution = $solution[0]['generated_text'];
-                $ai_solution = preg_replace('/^.*\?/', '', $ai_solution);
+            // Decode the response body to get the structured data
+            $solution = json_decode($rawResponse, true);
+
+            // Log the decoded response for debugging
+            Log::info('Gemini API Response:', ['response' => $solution]);
+
+            // Check if the response contains generated content
+            if (isset($solution['candidates'][0]['content']['parts'][0]['text'])) {
+                $ai_solution = $solution['candidates'][0]['content']['parts'][0]['text'];
             } else {
-                $ai_solution = 'No solution found.';
+                // If no content found, fallback message
+                $ai_solution = 'AI did not generate a solution.';
             }
+
 
             // Add AI solution to the ticket
             $ticketReference->update([
