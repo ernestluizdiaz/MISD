@@ -74,7 +74,7 @@
               <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Issue Category</th>
               <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Priority</th>
               <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Status</th>
-              <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Date</th>
+              <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Date Created</th>
               <th class="p-4 border-y border-blue-gray-100 bg-blue-gray-50/50">Actions</th>
             </tr>
           </thead>
@@ -104,7 +104,8 @@
           </div>
           </td>
           <td class="p-4 border-b border-blue-gray-50">
-          {{ \Carbon\Carbon::parse($ticket['submitted_at'])->format('d/m/y') }}
+          {{ \Carbon\Carbon::parse($ticket['submitted_at'])->format('d/m/y H:i') }}
+
           </td>
           <td class="p-4 border-b border-blue-gray-50">
           <button
@@ -145,117 +146,120 @@
           {{ $ticket['status'] }}
         </span>
         </p>
-        <p class="text-sm"><strong>Date:</strong>
-        {{ \Carbon\Carbon::parse($ticket['submitted_at'])->format('d/m/y') }}</p>
+        <p class="text-sm"><strong>Date Created:</strong>
+        {{ \Carbon\Carbon::parse($ticket['submitted_at'])->format('d/m/y H:i') }}
+        </p>
+
+        <!-- Resolve Button for Mobile -->
+        <div class="mt-4">
+        <button
+          class="w-full py-2 px-4 bg-blue-500 text-white text-sm rounded transition-transform duration-200 hover:scale-110"
+          data-ticket-id="{{ $ticket['ticket_id'] }}" @if($ticket['status'] == 'Completed') disabled
+      class="opacity-50" @endif>
+          {{ $ticket['status'] == 'Completed' ? 'Resolved' : 'Resolve' }}
+        </button>
+        </div>
       </div>
     @endforeach
       </div>
-    </div>
-  </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Handle the "Resolved" buttons
-      const resolveButtons = document.querySelectorAll('button[data-ticket-id]');
-      resolveButtons.forEach(button => {
-        const ticketRow = button.closest('tr');
-        const statusElement = ticketRow.querySelector('.status');
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          // Handle the "Resolved" buttons for both desktop and mobile
+          const resolveButtons = document.querySelectorAll('button[data-ticket-id]');
+          resolveButtons.forEach(button => {
+            const ticketRow = button.closest('.ticket-row');
+            const statusElement = ticketRow.querySelector('.status');
 
-        // Check if the ticket is already completed
-        if (statusElement && statusElement.textContent.trim() === 'Completed') {
-          button.disabled = true;  // Disable the button
-          button.classList.add('opacity-50');  // Optional: Add a fade effect for the disabled button
-          button.textContent = 'Resolved';  // Optionally change the button text
-        }
+            // Check if the ticket is already completed
+            if (statusElement && statusElement.textContent.trim() === 'Completed') {
+              button.disabled = true;  // Disable the button
+              button.classList.add('opacity-50');  // Optional: Add a fade effect for the disabled button
+              button.textContent = 'Resolved';  // Optionally change the button text
+            }
 
-        button.addEventListener('click', function () {
-          const ticketId = button.getAttribute('data-ticket-id');
-          console.log(`Ticket ID: ${ticketId}`);  // Log the ticket ID
+            button.addEventListener('click', function () {
+              const ticketId = button.getAttribute('data-ticket-id');
+              console.log(`Ticket ID: ${ticketId}`);  // Log the ticket ID
 
-          // Make an AJAX request to update the status of the ticket
-          fetch(`/updateTicketStatus/${ticketId}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-            body: JSON.stringify({
-              status: 'Completed' // Set the new status
-            })
-          })
-            .then(response => {
-              console.log('Response status:', response.status); // Log the response status
-              return response.json();  // Convert response to JSON
-            })
-            .then(data => {
-              console.log('Response data:', data);  // Log the response data
-              if (data.success) {
-                alert('Ticket resolved!');
-                // Update the UI with the new status
-                const ticketRow = button.closest('tr');  // Find the row containing the button
-                const statusElement = ticketRow.querySelector('.status');
+              // Make an AJAX request to update the status of the ticket
+              fetch(`/updateTicketStatus/${ticketId}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                  status: 'Completed' // Set the new status
+                })
+              })
+                .then(response => {
+                  console.log('Response status:', response.status); // Log the response status
+                  return response.json();  // Convert response to JSON
+                })
+                .then(data => {
+                  console.log('Response data:', data);  // Log the response data
+                  if (data.success) {
+                    alert('Ticket resolved!');
+                    // Update the UI with the new status
+                    const ticketRow = button.closest('.ticket-row');  // Find the row containing the button
+                    const statusElement = ticketRow.querySelector('.status');
 
-                if (statusElement) {
-                  statusElement.textContent = 'Completed';  // Update the status text in the UI
-                  statusElement.classList.remove('text-yellow-500');
-                  statusElement.classList.add('text-green-900');
-                } else {
-                  console.error('Status element not found for ticket:', ticketId);
-                }
+                    if (statusElement) {
+                      statusElement.textContent = 'Completed';  // Update the status text in the UI
+                      statusElement.classList.remove('text-yellow-500');
+                      statusElement.classList.add('text-green-900');
+                    } else {
+                      console.error('Status element not found for ticket:', ticketId);
+                    }
 
-                // Disable the button and change its appearance
-                button.disabled = true;
-                button.classList.add('opacity-50');
-                button.textContent = 'Resolved';  // Optionally change the button text
+                    // Disable the button and change its appearance
+                    button.disabled = true;
+                    button.classList.add('opacity-50');
+                    button.textContent = 'Resolved';  // Optionally change the button text
 
-                // Reload the page to reflect changes
-                setTimeout(() => {
-                  location.reload();  // Refresh the page
-                }, 1000);  // Delay to allow UI update before refreshing
-              } else {
-                alert(`Error: ${data.message || 'Unable to resolve the ticket.'}`);
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);  // Log the error if there is any
-              alert('There was an error resolving the ticket.');
+                    // Reload the page to reflect changes
+                    setTimeout(() => {
+                      location.reload();  // Refresh the page
+                    }, 1000);  // Delay to allow UI update before refreshing
+                  } else {
+                    alert(`Error: ${data.message || 'Unable to resolve the ticket.'}`);
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);  // Log the error if there is any
+                  alert('There was an error resolving the ticket.');
+                });
             });
-        });
-      });
-
-      // Handle the tab functionality
-      const tabs = document.querySelectorAll('.tab-item');
-      const tickets = document.querySelectorAll('.ticket-row');
-
-      tabs.forEach(tab => {
-        tab.addEventListener('click', function () {
-          const status = this.dataset.value;
-
-          // Reset tab styles
-          tabs.forEach(item => {
-            item.classList.remove('bg-white', 'rounded-lg');
-            item.classList.add('bg-[#f4f5f7]');
           });
 
-          // Highlight active tab
-          this.classList.add('bg-white', 'rounded-lg');
-          this.classList.remove('bg-[#f4f5f7]');
+          // Handle the tab functionality (for mobile view as well)
+          const tabs = document.querySelectorAll('.tab-item');
+          const tickets = document.querySelectorAll('.ticket-row');
 
-          // Filter tickets
-          tickets.forEach(ticket => {
-            const ticketStatus = ticket.dataset.status;
-            ticket.style.display = (status === 'all' || ticketStatus === status) ? '' : 'none';
+          tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+              const status = this.dataset.value;
+
+              // Reset tab styles
+              tabs.forEach(item => {
+                item.classList.remove('bg-white', 'rounded-lg');
+                item.classList.add('bg-[#f4f5f7]');
+              });
+
+              // Highlight active tab
+              this.classList.add('bg-white', 'rounded-lg');
+              this.classList.remove('bg-[#f4f5f7]');
+
+              // Filter tickets
+              tickets.forEach(ticket => {
+                const ticketStatus = ticket.dataset.status;
+                ticket.style.display = (status === 'all' || ticketStatus === status) ? '' : 'none';
+              });
+            });
           });
         });
-      });
-    });
-  </script>
-
-
-
-
-
-
+      </script>
 
 
 </body>
