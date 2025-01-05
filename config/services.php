@@ -36,7 +36,6 @@ return [
     ],
 
     'firebase' => [
-        'api_key' => env('AIzaSyAK1RmqlbfLH7vIZAGtPYbqoZua0kQwyNQ'),
         'auth_domain' => env('misd-56691.firebaseapp.com'),
         'database_url' => env('https://misd-56691-default-rtdb.firebaseio.com'),
         'project_id' => env('misd-56691'),
