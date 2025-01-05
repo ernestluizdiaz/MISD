@@ -23,7 +23,7 @@
 
           <p class="text-lg font-semibold mt-4">Dear {{ $data['first_name'] }} {{ $data['last_name'] }},</p>
           <p>Thank you for submitting a support ticket. We have received your request and assigned it ticket number
-            <b>"{{ $ticketNumber }}"</b>.
+            <b>"{{ $ticketId }}"</b>.
           </p>
 
 
