@@ -44,6 +44,10 @@ class LoginController extends Controller
             // Get user data from Firebase
             $user = $signInResult->data();
 
+            // Set session data
+            session_start();
+            $_SESSION['user'] = $user; // Store user information in session
+
             // Return success response
             return response()->json(['success' => true]);
 
@@ -65,9 +69,13 @@ class LoginController extends Controller
 
     public function logout()
     {
-        // Laravel logout
-        Auth::logout();  // Use the Laravel Auth facade to log out the user
+        // Clear the session
+        session_start();
+        session_unset(); // Remove all session variables
+        session_destroy(); // Destroy the session
 
+        // Redirect to login page
         return redirect()->route('login');
     }
+
 }
