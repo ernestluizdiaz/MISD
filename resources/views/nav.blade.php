@@ -3,9 +3,12 @@
     <div class="text-xl font-semibold text-black">
       <h1>MISD</h1>
     </div>
-    <div class="flex space-x-4">
+    <div class="flex space-x-2">
       <a href="/"
         class="text-black hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Tickets</a>
+      <a href="/search"
+        class="text-black hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Track
+        Tickets</a>
       <a href="/login"
         class="text-black hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Login</a>
     </div>

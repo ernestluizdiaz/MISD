@@ -38,5 +38,13 @@ Route::get('/', function () {
 // Route to handle form submission (POST request)
 Route::post('/ticketSubmitted', [SubmitTicket::class, 'submitTicket'])->name('submit.ticket');
 
+// Search route
+Route::get('/search', function () {
+  return view('search');
+});
+Route::post('/search', [SubmitTicket::class, 'trackTicket'])->name('trackTicket');
+
+
+
 // Test Firebase connection
 Route::get('/test-firebase', [FirebaseController::class, 'testConnection']);

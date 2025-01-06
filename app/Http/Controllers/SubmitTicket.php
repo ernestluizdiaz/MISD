@@ -173,5 +173,56 @@ class SubmitTicket extends Controller
         }
     }
 
+    public function trackTicket(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            // Get the Firebase database instance
+            $database = app('firebase')->createDatabase();
+            $ticketsReference = $database->getReference('tickets');
+
+            // Search for the ticket by email
+            $tickets = $ticketsReference->getValue();
+
+            // Check if a ticket with the provided email exists
+            $ticketFound = null;
+            foreach ($tickets as $key => $ticket) {
+                if ($ticket['email'] === $request->email) {
+                    $ticketFound = $ticket;
+                    $ticketFound['ticket_id'] = $key; // Add ticket_id
+                    break;
+                }
+            }
+
+            if ($ticketFound) {
+                return response()->json([
+                    'ticket_id' => $ticketFound['ticket_id'],
+                    'first_name' => $ticketFound['first_name'],
+                    'last_name' => $ticketFound['last_name'],
+                    'email' => $ticketFound['email'],
+                    'issue_category' => $ticketFound['issue_category'],
+                    'priority_level' => $ticketFound['priority_level'],
+                    'description' => $ticketFound['description'],
+                    'status' => $ticketFound['status'],
+                    'submitted_at' => $ticketFound['submitted_at'],
+                ]);
+            } else {
+                return response()->json(['error' => 'No ticket found for this email.']);
+            }
+
+        } catch (\Exception $e) {
+            // Log the exception error
+            Log::error('Error tracking ticket: ' . $e->getMessage());
+
+            // Return error message
+            return response()->json(['error' => 'Error fetching ticket: ' . $e->getMessage()]);
+        }
+    }
+
+
+
 
 }
