@@ -24,6 +24,13 @@ class DashboardController extends Controller
                 foreach ($tickets as $key => $ticket) {
                     $tickets[$key]['ticket_id'] = $key; // The Firebase key will be used as the ticket_id
                 }
+                // Define a priority order (Low, Medium, High)
+                $priorityOrder = ['Low' => 1, 'Medium' => 2, 'High' => 3];
+
+                // Sort tickets by priority level
+                usort($tickets, function ($a, $b) use ($priorityOrder) {
+                    return $priorityOrder[$b['priority_level']] <=> $priorityOrder[$a['priority_level']];
+                });
             }
 
             // Return the dashboard view with the tickets
