@@ -33,7 +33,7 @@ class SubmitTicket extends Controller
                 'issue_category' => $request->issue_category,
                 'priority_level' => $request->priority_level,
                 'description' => $request->description,
-                'status' => 'pending',
+                'status' => 'Pending',
                 'submitted_at' => now()->toDateTimeString(),
             ];
 
@@ -162,6 +162,8 @@ class SubmitTicket extends Controller
                 'status' => $request->status,
             ]);
 
+
+
             // Return success message to the user
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -172,7 +174,6 @@ class SubmitTicket extends Controller
             return response()->json(['success' => false, 'message' => 'Error updating ticket status: ' . $e->getMessage()]);
         }
     }
-
     public function trackTicket(Request $request)
     {
         $request->validate([
@@ -184,45 +185,33 @@ class SubmitTicket extends Controller
             $database = app('firebase')->createDatabase();
             $ticketsReference = $database->getReference('tickets');
 
-            // Search for the ticket by email
+            // Retrieve all tickets
             $tickets = $ticketsReference->getValue();
 
-            // Check if a ticket with the provided email exists
-            $ticketFound = null;
+            // Filter tickets by the provided email
+            $matchedTickets = [];
             foreach ($tickets as $key => $ticket) {
-                if ($ticket['email'] === $request->email) {
-                    $ticketFound = $ticket;
-                    $ticketFound['ticket_id'] = $key; // Add ticket_id
-                    break;
+                if (isset($ticket['email']) && $ticket['email'] === $request->email) {
+                    $ticket['ticket_id'] = $key; // Add ticket ID to the ticket data
+                    $matchedTickets[] = $ticket;
                 }
             }
 
-            if ($ticketFound) {
+            if (!empty($matchedTickets)) {
                 return response()->json([
-                    'ticket_id' => $ticketFound['ticket_id'],
-                    'first_name' => $ticketFound['first_name'],
-                    'last_name' => $ticketFound['last_name'],
-                    'email' => $ticketFound['email'],
-                    'issue_category' => $ticketFound['issue_category'],
-                    'priority_level' => $ticketFound['priority_level'],
-                    'description' => $ticketFound['description'],
-                    'status' => $ticketFound['status'],
-                    'submitted_at' => $ticketFound['submitted_at'],
+                    'tickets' => $matchedTickets,
                 ]);
             } else {
-                return response()->json(['error' => 'No ticket found for this email.']);
+                return response()->json(['error' => 'No tickets found for this email.']);
             }
 
         } catch (\Exception $e) {
             // Log the exception error
-            Log::error('Error tracking ticket: ' . $e->getMessage());
+            Log::error('Error tracking tickets: ' . $e->getMessage());
 
             // Return error message
-            return response()->json(['error' => 'Error fetching ticket: ' . $e->getMessage()]);
+            return response()->json(['error' => 'Error fetching tickets: ' . $e->getMessage()]);
         }
     }
-
-
-
 
 }

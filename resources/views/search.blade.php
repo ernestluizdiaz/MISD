@@ -45,24 +45,12 @@
             Ticket Details:
           </h1>
 
-          <div id="ticket-details" class="mt-4 hidden">
-            <p class="text-lg font-semibold text-blue-600"><strong>Ticket ID:</strong> <span id="ticket-id"></span></p>
-            <p class="text-lg font-semibold text-green-600"><strong>Name:</strong> <span id="ticket-name"></span></p>
-            <p class="text-lg font-semibold text-purple-600"><strong>Email:</strong> <span id="ticket-email"></span></p>
-            <p class="text-lg font-semibold text-yellow-600"><strong>Issue Category:</strong> <span
-                id="ticket-issue-category"></span></p>
-            <p class="text-lg font-semibold text-red-600"><strong>Priority Level:</strong> <span
-                id="ticket-priority-level"></span></p>
-            <p class="text-lg font-semibold text-orange-600"><strong>Description:</strong> <span
-                id="ticket-description"></span></p>
-            <p class="text-lg font-semibold text-teal-600"><strong>Status:</strong> <span id="ticket-status"></span></p>
-            <p class="text-lg font-semibold text-indigo-600"><strong>Submitted At:</strong> <span
-                id="ticket-submitted-at"></span></p>
-
+          <div id="tickets-container" class="space-y-6 pt-4">
           </div>
-
         </div>
+
       </div>
+    </div>
     </div>
   </section>
 
@@ -84,25 +72,42 @@
       })
         .then(response => response.json())
         .then(data => {
-          const detailsDiv = document.getElementById('ticket-details');
-          if (data.error) {
-            detailsDiv.classList.add('hidden');
-            alert(data.error);
-          } else {
-            document.getElementById('ticket-id').textContent = data.ticket_id;
-            document.getElementById('ticket-name').textContent = data.first_name + ' ' + data.last_name;
-            document.getElementById('ticket-email').textContent = data.email;
-            document.getElementById('ticket-issue-category').textContent = data.issue_category;
-            document.getElementById('ticket-priority-level').textContent = data.priority_level;
-            document.getElementById('ticket-description').textContent = data.description;
-            document.getElementById('ticket-status').textContent = data.status;
-            document.getElementById('ticket-submitted-at').textContent = data.submitted_at;
+          const ticketsContainer = document.getElementById('tickets-container');
+          ticketsContainer.innerHTML = ''; // Clear existing tickets
 
-            detailsDiv.classList.remove('hidden');
+          if (data.error) {
+            alert(data.error);
+          } else if (data.tickets && data.tickets.length > 0) {
+            data.tickets.forEach(ticket => {
+              const ticketDiv = document.createElement('div');
+              ticketDiv.className = "p-4 mb-5 bg-gray-100 rounded-lg border border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600";
+
+              ticketDiv.innerHTML = `
+            <p class="text-lg font-bold"><strong>Ticket ID:</strong> ${ticket.ticket_id}</p>
+            <p class="text-lg"><strong>Name:</strong> ${ticket.first_name} ${ticket.last_name}</p>
+            <p class="text-lg"><strong>Email:</strong> ${ticket.email}</p>
+            <p class="text-lg"><strong>Issue Category:</strong> ${ticket.issue_category}</p>
+            <p class="text-lg"><strong>Priority Level:</strong> <span style="font-weight: bold; color: ${ticket.priority_level === 'High'
+                  ? 'red'
+                  : ticket.priority_level === 'Medium'
+                    ? '#eab308'
+                    : 'green'
+                };">${ticket.priority_level}</span></p>
+            <p class="text-lg"><strong>Description:</strong> ${ticket.description}</p>
+            <p class="text-lg"><strong>Status:</strong> <span style="font-weight: bold; color: ${ticket.status === 'Pending' ? '#eab308' : 'green'
+                };">${ticket.status}</span></p>
+            <p class="text-lg"><strong>Submitted At:</strong> ${ticket.submitted_at}</p>
+          `;
+
+              ticketsContainer.appendChild(ticketDiv);
+            });
+          } else {
+            ticketsContainer.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">No tickets found.</p>`;
           }
         })
         .catch(error => console.error('Error:', error));
     });
+
   </script>
 </body>
 
